@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        #chatContainer{
+            display : none;
+        }
+    </style>
+</head>
+<body>
+    <div id="join">
+        <input type="text" id="username">
+        <button onclick="joinChat()">join</button>
+    </div>
+    <div id="chatContainer">
+        <div id="chatMessages"></div>
+        <div class="messageInputContainer">
+            <input type="text" id="messageInput">
+            <button onclick="sendMessage()">send</button>
+        </div>
+    </div>
+    <ul id="onlineUsers"><li>online users</li></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let username = "";
+        const messageContainer = document.getElementById("chatMessages");
+        const onlineUsers = document.getElementById('onlineUsers');
+        function joinChat(){
+            username = document.getElementById('username').value;
+            document.getElementById("join").style.display = "none";
+            document.getElementById("chatContainer").style.display = "block";
+            socket.emit("join",username);
+        }
+
+        function sendMessage(){
+            const message = document.getElementById("messageInput").value;
+            socket.emit("userMessage",message);
+        }
+
+        socket.on("userJoined",(username)=>{
+            messageContainer.innerHTML += `<p class = "small">${username} is joined the chat.</p>`;
+        })
+
+        socket.on("message",(username,message)=>{
+            messageContainer.innerHTML += `<p>${username} : ${message}</p>`
+        })
+
+        socket.on("userLeft",(username)=>{
+            messageContainer.innerHTML += `<p class = "small">${username} is left the chat.</p>`;
+        })
+
+        socket.on("onlineUsers",(users)=>{
+            onlineUsers.innerHTML = "<p>online users</P>";
+            users.forEach((user,index)=>{
+                onlineUsers.innerHTML += `<li>${user}</li>`
+            })
+        })
+
+    </script>
+</body>
+</html>
